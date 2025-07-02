@@ -18,7 +18,7 @@ if st.button('Find'):
         st.write(f"Raw similarity scores: {helper.string_similarity(q1, q2)}")
         st.write(f"Duplicate probability: {proba:.1%}")
         
-        if proba > 0.3:  # Lower threshold
+        if proba > 0.3:  
             st.header('Duplicate')
             st.success("These questions are duplicates")
         else:
