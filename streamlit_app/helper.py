@@ -98,7 +98,7 @@ def string_similarity(str1, str2):
         max(SequenceMatcher(None, str1[:50], str2[:50]).ratio(),
             SequenceMatcher(None, str1[-50:], str2[-50:]).ratio()) * 100,
         SequenceMatcher(None, sorted(tokens1), sorted(tokens2)).ratio() * 100,
-        SequenceMatcher(None, set(tokens1), set(tokens2)).ratio() * 100
+        SequenceMatcher(None, q1, q2).ratio() * 100
     ]
 
 
