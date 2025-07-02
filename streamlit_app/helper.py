@@ -6,13 +6,10 @@ from bs4 import BeautifulSoup
 from difflib import SequenceMatcher
 from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS 
 
-
 cv = pickle.load(open('model/count_vectorizer.pkl','rb'))
-
 STOP_WORDS = ENGLISH_STOP_WORDS
 
 def longest_common_substring(s1, s2):
-    """Pure Python implementation of longest common substring"""
     m = [[0] * (1 + len(s2)) for _ in range(1 + len(s1))]
     longest, x_longest = 0, 0
     for x in range(1, 1 + len(s1)):
@@ -27,16 +24,12 @@ def longest_common_substring(s1, s2):
     return s1[x_longest - longest:x_longest]
 
 def test_common_words(q1, q2):
-    """Count of common words between two questions"""
     return len(set(q1.lower().split()) & set(q2.lower().split()))
 
 def test_total_words(q1, q2):
-    """Total unique words in both questions"""
     return len(set(q1.lower().split())) + len(set(q2.lower().split()))
 
-
 def test_fetch_token_features(q1, q2, safe_div=0.0001):
-    """Extract various token-based features"""
     q1_tokens = q1.split()
     q2_tokens = q2.split()
     
@@ -64,7 +57,6 @@ def test_fetch_token_features(q1, q2, safe_div=0.0001):
     ]
 
 def test_fetch_length_features(q1, q2):
-    """Extract length-based features"""
     q1_tokens = q1.split()
     q2_tokens = q2.split()
     
@@ -81,72 +73,40 @@ def test_fetch_length_features(q1, q2):
     ]
 
 def string_similarity(str1, str2):
-    """Calculate multiple string similarity metrics"""
-    # Convert to strings and handle empty/None cases
     str1 = str(str1) if str1 is not None else ""
     str2 = str(str2) if str2 is not None else ""
     
     def _tokenize(s):
         return s.lower().split()
     
-    # Basic full string ratio
-    ratio = SequenceMatcher(None, str1, str2).ratio() * 100
-    
-    # Tokenize once for reuse
     tokens1 = _tokenize(str1)
     tokens2 = _tokenize(str2)
     
-    # Calculate all metrics with error handling
+    # Proper Jaccard similarity calculation
+    intersection = len(set(tokens1) & set(tokens2))
+    union = max(len(set(tokens1) | set(tokens2)), 1)
+    jaccard_sim = intersection / union * 100
+    
     return [
-        ratio,  # Full string ratio
+        SequenceMatcher(None, str1, str2).ratio() * 100,
         max(
             SequenceMatcher(None, str1[:50], str2[:50]).ratio(),
             SequenceMatcher(None, str1[-50:], str2[-50:]).ratio()
-        ) * 100,  # Best of beginning/end comparison
-        SequenceMatcher(None, sorted(tokens1), sorted(tokens2)).ratio() * 100,  # Token order insensitive
-        len(set(tokens1) & set(tokens2)) / max(len(set(tokens1)), 1) * 100  # REPLACED: Jaccard similarity instead of SequenceMatcher with sets
+        ) * 100,
+        SequenceMatcher(None, sorted(tokens1), sorted(tokens2)).ratio() * 100,
+        jaccard_sim
     ]
 
 def preprocess(q):
-    """Optimized text preprocessing pipeline"""
     q = str(q).lower().strip()
-    
-    # Character replacements
-    char_map = {
-        '%': ' percent', '$': ' dollar ', '₹': ' rupee ', 
-        '€': ' euro ', '@': ' at ', '[math]': ''
-    }
-    for k, v in char_map.items():
-        q = q.replace(k, v)
-    
-    # Number abbreviations
-    q = re.sub(r'([0-9]+)000000000', r'\1b', q)
-    q = re.sub(r'([0-9]+)000000', r'\1m', q)
-    q = re.sub(r'([0-9]+)000', r'\1k', q)
-    
-    # Contractions handling
-    contractions = {
-        r"(\w+)'ve": r"\1 have", r"(\w+)n't": r"\1 not",
-        r"(\w+)'re": r"\1 are", r"(\w+)'ll": r"\1 will"
-    }
-    for pat, repl in contractions.items():
-        q = re.sub(pat, repl, q)
-        
-    # Clean text
     q = BeautifulSoup(q, 'html.parser').get_text()
-    q = re.sub(r'\W+', ' ', q).strip()
-    return q
-
-
-# In[35]:
-
+    q = re.sub(r'[^\w\s]', ' ', q)  # Keep word boundaries
+    return ' '.join(q.split())
 
 def query_point_creator(q1, q2):
-    """Create feature vector for prediction"""
     q1_processed = preprocess(q1)
     q2_processed = preprocess(q2)
     
-    # Basic features
     features = [
         len(q1_processed),
         len(q2_processed),
@@ -157,15 +117,10 @@ def query_point_creator(q1, q2):
         test_common_words(q1_processed, q2_processed) / (test_total_words(q1_processed, q2_processed) + 1e-6)
     ]
     
-    # Token features
     features.extend(test_fetch_token_features(q1_processed, q2_processed))
-    
-    # Length features
     features.extend(test_fetch_length_features(q1_processed, q2_processed))
-    
-    # Fuzzy features
     features.extend(string_similarity(q1_processed, q2_processed))
-    # Bag-of-words features
+    
     bow_features = np.hstack([
         cv.transform([q1_processed]).toarray(),
         cv.transform([q2_processed]).toarray()
