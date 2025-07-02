@@ -103,7 +103,7 @@ def preprocess(q):
     q = BeautifulSoup(q, 'html.parser').get_text()
     # Only remove special characters, keep basic punctuation
     q = re.sub(r'[^a-z0-9\s]', ' ', q)
-    return ' '.join(q.split()
+    return ' '.join(q.split())
 
 def query_point_creator(q1, q2):
     q1_processed = preprocess(q1)
