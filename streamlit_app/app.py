@@ -8,7 +8,7 @@ import streamlit as st
 import helper 
 import pickle
 
-model = pickle.load(open('quora_xgb_model.pkl','rb'))
+model = pickle.load(open('model/quora_xgb_model.pkl','rb'))
 
 st.header('Duplicate Question Pairs')
 
@@ -23,15 +23,6 @@ if st.button('Find'):
         st.header('Duplicate')
     else:
         st.header('Not Duplicate')
-
-
-# In[1]:
-
-
-jupyter nbconvert --to python app.ipynb
-
-
-# In[ ]:
 
 
 
