@@ -13,12 +13,12 @@ q2 = st.text_input('Enter question 2')
 if st.button('Find'):
     try:
         query = helper.query_point_creator(q1, q2)
-        proba = model.predict_proba(query)[0][1]
+        proba = 1-model.predict_proba(query)[0][1]
         
         st.write(f"Raw similarity scores: {helper.string_similarity(q1, q2)}")
         st.write(f"Duplicate probability: {proba:.1%}")
         
-        if proba < 0.3:  
+        if proba > 0.3:  
             st.header('Duplicate')
             st.success("These questions are duplicates")
         else:
