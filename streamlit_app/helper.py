@@ -80,30 +80,32 @@ def test_fetch_length_features(q1, q2):
         len(lcs) / min_len
     ]
 
-
-# In[33]:
-
-
 def string_similarity(str1, str2):
-    """Built-in fuzzy matching replacement using difflib"""
+    """Calculate multiple string similarity metrics"""
+    # Convert to strings and handle empty/None cases
+    str1 = str(str1) if str1 is not None else ""
+    str2 = str(str2) if str2 is not None else ""
+    
     def _tokenize(s):
         return s.lower().split()
     
+    # Basic full string ratio
     ratio = SequenceMatcher(None, str1, str2).ratio() * 100
+    
+    # Tokenize once for reuse
     tokens1 = _tokenize(str1)
     tokens2 = _tokenize(str2)
     
+    # Calculate all metrics with error handling
     return [
-        ratio,
-        max(SequenceMatcher(None, str1[:50], str2[:50]).ratio(),
-            SequenceMatcher(None, str1[-50:], str2[-50:]).ratio()) * 100,
-        SequenceMatcher(None, sorted(tokens1), sorted(tokens2)).ratio() * 100,
-        SequenceMatcher(None, q1, q2).ratio() * 100
+        ratio,  # Full string ratio
+        max(
+            SequenceMatcher(None, str1[:50], str2[:50]).ratio(),
+            SequenceMatcher(None, str1[-50:], str2[-50:]).ratio()
+        ) * 100,  # Best of beginning/end comparison
+        SequenceMatcher(None, sorted(tokens1), sorted(tokens2)).ratio() * 100,  # Token order insensitive
+        len(set(tokens1) & set(tokens2)) / max(len(set(tokens1)), 1) * 100  # REPLACED: Jaccard similarity instead of SequenceMatcher with sets
     ]
-
-
-# In[34]:
-
 
 def preprocess(q):
     """Optimized text preprocessing pipeline"""
