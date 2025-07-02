@@ -1,8 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[25]:
-
 
 import re
 import numpy as np
@@ -12,21 +7,9 @@ from difflib import SequenceMatcher
 from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS 
 
 
-# In[26]:
+cv = pickle.load(open('model/count_vectorizer.pkl','rb'))
 
-
-cv = pickle.load(open('count_vectorizer.pkl','rb'))
-
-
-# In[27]:
-
-
-# Use sklearn's built-in English stopwords
 STOP_WORDS = ENGLISH_STOP_WORDS
-
-
-# In[28]:
-
 
 def longest_common_substring(s1, s2):
     """Pure Python implementation of longest common substring"""
@@ -43,24 +26,13 @@ def longest_common_substring(s1, s2):
                 m[x][y] = 0
     return s1[x_longest - longest:x_longest]
 
-
-# In[29]:
-
-
 def test_common_words(q1, q2):
     """Count of common words between two questions"""
     return len(set(q1.lower().split()) & set(q2.lower().split()))
 
-
-# In[30]:
-
-
 def test_total_words(q1, q2):
     """Total unique words in both questions"""
     return len(set(q1.lower().split())) + len(set(q2.lower().split()))
-
-
-# In[31]:
 
 
 def test_fetch_token_features(q1, q2, safe_div=0.0001):
@@ -90,10 +62,6 @@ def test_fetch_token_features(q1, q2, safe_div=0.0001):
         int(q1_tokens[-1] == q2_tokens[-1]),
         int(q1_tokens[0] == q2_tokens[0])
     ]
-
-
-# In[32]:
-
 
 def test_fetch_length_features(q1, q2):
     """Extract length-based features"""
@@ -202,28 +170,3 @@ def query_point_creator(q1, q2):
     ])
     
     return np.hstack([np.array(features).reshape(1, -1), bow_features])
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
