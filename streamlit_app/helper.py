@@ -73,35 +73,37 @@ def test_fetch_length_features(q1, q2):
     ]
 
 def string_similarity(str1, str2):
-    str1 = str(str1) if str1 is not None else ""
-    str2 = str(str2) if str2 is not None else ""
+    """More reliable similarity metrics"""
+    str1 = preprocess(str1)
+    str2 = preprocess(str2)
     
-    def _tokenize(s):
-        return s.lower().split()
+    # Basic string similarity
+    seq_match = SequenceMatcher(None, str1, str2).ratio() * 100
     
-    tokens1 = _tokenize(str1)
-    tokens2 = _tokenize(str2)
+    # Token-based similarities
+    tokens1 = str1.split()
+    tokens2 = str2.split()
     
-    # Proper Jaccard similarity calculation
-    intersection = len(set(tokens1) & set(tokens2))
-    union = max(len(set(tokens1) | set(tokens2)), 1)
-    jaccard_sim = intersection / union * 100
+    # Jaccard similarity (proper implementation)
+    set1, set2 = set(tokens1), set(tokens2)
+    intersection = len(set1 & set2)
+    union = max(len(set1 | set2), 1)
+    jaccard = intersection / union * 100
     
     return [
-        SequenceMatcher(None, str1, str2).ratio() * 100,
-        max(
-            SequenceMatcher(None, str1[:50], str2[:50]).ratio(),
-            SequenceMatcher(None, str1[-50:], str2[-50:]).ratio()
-        ) * 100,
-        SequenceMatcher(None, sorted(tokens1), sorted(tokens2)).ratio() * 100,
-        jaccard_sim
+        seq_match,
+        jaccard,
+        len(set1 & set2),  # Common words count
+        int(str1 == str2) * 100  # Exact match flag
     ]
 
 def preprocess(q):
+    """More conservative preprocessing"""
     q = str(q).lower().strip()
     q = BeautifulSoup(q, 'html.parser').get_text()
-    q = re.sub(r'[^\w\s]', ' ', q)  # Keep word boundaries
-    return ' '.join(q.split())
+    # Only remove special characters, keep basic punctuation
+    q = re.sub(r'[^a-z0-9\s]', ' ', q)
+    return ' '.join(q.split()
 
 def query_point_creator(q1, q2):
     q1_processed = preprocess(q1)
